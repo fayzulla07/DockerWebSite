@@ -1,22 +1,22 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
-WORKDIR /app
-EXPOSE 80
-EXPOSE 443
-
+# Start with the .NET SDK for building the app
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-COPY ["DockerWebSite/DockerWebSite.csproj", "DockerWebSite/"]
-RUN dotnet restore "DockerWebSite/DockerWebSite.csproj"
-COPY . .
-WORKDIR "/src/DockerWebSite"
-RUN dotnet build "DockerWebSite.csproj" -c Release -o /app/build
+# Work within a folder named `/source`
+WORKDIR /source
 
-FROM build AS publish
-RUN dotnet publish "DockerWebSite.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# Copy everything in this project and build app
+COPY . ./DockerWebSite/
+WORKDIR /source/DockerWebSite
+RUN dotnet publish -c release -o /app 
 
-FROM base AS final
+# final stage/image
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app ./
+
+# Expose port 80
+# This is important in order for the Azure App Service to pick up the app
+ENV PORT 80
+EXPOSE 80
+
+# Start the app
 ENTRYPOINT ["dotnet", "DockerWebSite.dll"]
