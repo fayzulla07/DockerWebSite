@@ -8,7 +8,8 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddHealthChecks()
-            .AddSqlServer(builder.Configuration.GetValue<string>("ConnectionStrings:DefaultConnection"));
+            .AddSqlServer(builder.Configuration.GetValue<string>("ConnectionStrings:DefaultConnection"))
+            .AddNpgSql(builder.Configuration.GetValue<string>("ConnectionStrings:DefaultConnectionPostgre"));
         builder.Services.AddHealthChecksUI().AddInMemoryStorage();
         // Add services to the container.
         builder.Services.AddRazorPages();
